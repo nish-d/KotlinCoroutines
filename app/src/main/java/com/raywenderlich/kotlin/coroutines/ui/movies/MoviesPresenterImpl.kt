@@ -30,16 +30,22 @@
 package com.raywenderlich.kotlin.coroutines.ui.movies
 
 import com.raywenderlich.kotlin.coroutines.domain.repository.MovieRepository
+import com.raywenderlich.kotlin.coroutines.utils.logCoroutine
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
+import kotlin.math.log
 
 /**
  * Handles the business logic calls, reacting to UI events.
  */
 class MoviesPresenterImpl(private val movieRepository: MovieRepository) : MoviesPresenter, CoroutineScope {
 
+    private val coroutineExceptionHandler = CoroutineExceptionHandler {
+        context, throwable -> throwable.printStackTrace()
+    }
     private lateinit var moviesView: MoviesView
 
     override fun setView(moviesView: MoviesView) {
@@ -48,12 +54,14 @@ class MoviesPresenterImpl(private val movieRepository: MovieRepository) : Movies
 
     override fun getData() {
         launch {
-            val result = movieRepository.getMovies()
 
-            if(!result.value.isNullOrEmpty()){
-                moviesView.showMovies(result.value)
-            }else if(result.throwable!=null){
-                handleError(result.throwable)
+            logCoroutine("getData", coroutineContext)
+            val result =  runCatching {  movieRepository.getMovies() }
+
+            result.onSuccess {
+                moviesView.showMovies(it)
+            }.onFailure {
+                handleError(it)
             }
         }
 
@@ -64,5 +72,5 @@ class MoviesPresenterImpl(private val movieRepository: MovieRepository) : Movies
     }
 
     override val coroutineContext: CoroutineContext
-        get() = Dispatchers.Main
+        get() = Dispatchers.Main + coroutineExceptionHandler
 }

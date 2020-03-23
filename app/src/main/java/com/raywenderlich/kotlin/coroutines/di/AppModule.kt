@@ -29,17 +29,22 @@
  */
 package com.raywenderlich.kotlin.coroutines.di
 
+import com.raywenderlich.kotlin.coroutines.contextProvider.CoroutineContextProvider
+import com.raywenderlich.kotlin.coroutines.contextProvider.CoroutineContextProviderImpl
 import com.raywenderlich.kotlin.coroutines.data.database.MovieDatabase
 import com.raywenderlich.kotlin.coroutines.domain.repository.MovieRepository
 import com.raywenderlich.kotlin.coroutines.domain.repository.MovieRepositoryImpl
+import kotlinx.coroutines.Dispatchers
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
 fun appModule() = module {
 
+  single { CoroutineContextProviderImpl(Dispatchers.IO) as CoroutineContextProvider }
+
   single { MovieDatabase.create(androidContext()) } // database
 
   single { get<MovieDatabase>().movieDao() } // dao
 
-  single { MovieRepositoryImpl(get(), get()) as MovieRepository } // repository
+  single { MovieRepositoryImpl(get(), get(), get()) as MovieRepository } // repository
 }
