@@ -52,9 +52,7 @@ abstract class MovieDatabase : RoomDatabase() {
           context,
           MovieDatabase::class.java,
           "movies"
-      )
-          .allowMainThreadQueries()
-          .build()
+      ).build()
     }
   }
 }
